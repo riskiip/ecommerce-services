@@ -12,13 +12,16 @@ dbconnect();
 const bodyParser = require('body-parser');
 // Reuse Auth Route
 const authRoute = require('./routes/AuthRoute');
+const {notFoundHandler, serverErrorHandler} = require("./middlewares/ErrorHandler");
 
 /* Running server */
 // Parsing request from user
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
 // Reroute prefix api/user to Auth Route
-app.use('/api/user', authRoute);
+app.use('/api/user', authRoute)
+app.use(notFoundHandler);
+app.use(serverErrorHandler);
 // Listen to port
 app.listen(PORT, () => {
     console.log(`Server running on port : ${PORT}`);
