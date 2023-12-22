@@ -15,8 +15,18 @@ const createdUser = asyncHandler(async(req, res) => {
         const newUser = await User.create(req.body);
         res.json(newUser);
     } else {
-        throw new Error('RZK-901', 'User already exist on db');
+        throw new Error('ECM-901|User already exist on db|User sudah terdaftar');
     }
 });
 
-module.exports = {createdUser};
+const loginUserController = asyncHandler(async(req, res) => {
+    const {email, password} = req.body;
+    const findUser = await User.findOne({email});
+    if (findUser && (await findUser.isPasswordMatched(password))) {
+        res.json(findUser);
+    } else {
+        throw new Error('ECM-902|Invalid Email / Password|Username / Password Salah')
+    }
+})
+
+module.exports = {createdUser, loginUserController};

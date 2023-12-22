@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const bcrypt = require('bcrypt');
 /* Create schema first */
 const userSchema = mongoose.Schema({
     firstName: {
@@ -25,6 +25,17 @@ const userSchema = mongoose.Schema({
         required: true
     },
 });
+
+// Hash password using bcrypt
+userSchema.pre('save', async function(next) {
+    const salt = await bcrypt.genSaltSync(10);
+    this.password = await bcrypt.hash(this.password, salt);
+})
+
+// Find password to login
+userSchema.methods.isPasswordMatched = async function(enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+}
 
 /* Then export model using schema that we design earlier */
 module.exports = mongoose.model("User", userSchema);

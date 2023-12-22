@@ -5,11 +5,17 @@ const notFoundHandler = (req, res, next) => {
 }
 
 const serverErrorHandler = (err, req, res, next) => {
+    console.log('test')
+    console.log(err)
     const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
     res.status(statusCode);
     res.json({
         error_schema: {
-            error_code: err.message
+            error_code: err.message.split('|')[0],
+            error_message: {
+                english: err.message.split('|')[1],
+                indonesia: err.message.split('|')[2],
+            }
         },
         output_schema: {}
     });
