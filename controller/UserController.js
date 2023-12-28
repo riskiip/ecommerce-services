@@ -3,6 +3,8 @@ const User = require('../models/UserModel');
 const asyncHandler = require('express-async-handler');
 const {generateToken} = require("../config/JwtConfig");
 const validateMongoDbId = require("../utils/ValidateMongoDb");
+const {refreshToken} = require("../config/RefreshToken");
+const jwt = require("jsonwebtoken");
 
 /**
  * This function is separate from auth route, because we want to focus on user controller only.
@@ -28,6 +30,20 @@ const loginUserController = asyncHandler(async (req, res) => {
     const {email, password} = req.body;
     const findUser = await User.findOne({email});
     if (findUser && (await findUser.isPasswordMatched(password))) {
+        const refreshToken2 = await refreshToken(findUser?._id);
+        const updateUser = await User.findByIdAndUpdate(
+            findUser._id,
+            {
+                refreshToken: refreshToken2
+            },
+            {
+                new: true
+            }
+        )
+        res.cookie("refreshToken", refreshToken2, {
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000
+        })
         res.json({
             id: findUser?._id,
             first_name: findUser?.firstName,
@@ -144,6 +160,45 @@ const unblockUser = asyncHandler(async (req, res) => {
     }
 });
 
+// Refresh token
+const handleRefreshToken = asyncHandler(async (req, res) => {
+    const cookie = req.cookies;
+    if (!cookie?.refreshToken) throw new Error("No Refresh Token in Cookies");
+    const refreshToken = cookie.refreshToken;
+    const user = await User.findOne({ refreshToken });
+    if (!user) throw new Error(" No Refresh token present in db or not matched");
+    jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+        if (err || user.id !== decoded.id) {
+            throw new Error("There is something wrong with refresh token");
+        }
+        const accessToken = generateToken(user?._id);
+        res.json({ accessToken });
+    });
+});
+
+// Logout
+const logout = asyncHandler(async (req, res) => {
+    const cookie = req.cookies;
+    if (!cookie?.refreshToken) throw new Error("ECM-902|No Refresh Token in Cookies|Tidak ada data di cookies");
+    const refreshToken = cookie.refreshToken;
+    const user = await User.findOne({ refreshToken });
+    if (!user) {
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: true,
+        });
+        return res.sendStatus(204); // forbidden
+    }
+    await User.findOneAndUpdate(refreshToken, {
+        refreshToken: "",
+    });
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+    });
+    res.sendStatus(204); // forbidden
+});
+
 module.exports = {
     createdUser,
     loginUserController,
@@ -152,5 +207,7 @@ module.exports = {
     deleteUserById,
     updateUser,
     blockUser,
-    unblockUser
+    unblockUser,
+    handleRefreshToken,
+    logout
 };
