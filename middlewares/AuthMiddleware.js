@@ -14,11 +14,21 @@ const authMiddleware = asyncHandler(async(req, res, next) => {
                 next();
             }
         } catch(err) {
-            throw new Error('ECM-911|Token invalid|Token sudah tidak valid');
+            throw new Error('ECM-910|Token invalid|Token sudah tidak valid');
         }
     } else {
-        throw new Error('ECM-912|Header is required|Header diperlukan');
+        throw new Error('ECM-911|Header is required|Header diperlukan');
     }
 });
 
-module.exports = {authMiddleware};
+const isAdmin = asyncHandler(async (req, res, next) => {
+    const { adminUser } = req.user;
+    const admin = await User.findOne(adminUser);
+    if (admin.role !== 'admin') {
+        throw new Error('ECM-912|You are not admin|Anda bukan sebagai admin');
+    } else {
+        next();
+    }
+})
+
+module.exports = {authMiddleware, isAdmin};
