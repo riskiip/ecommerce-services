@@ -5,6 +5,7 @@ const PORT = process.env.PORT;
 const dbconnect = require('./config/DbConnect');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const morgan = require("morgan");
 const authRoute = require('./routes/AuthRoute');
 const productRoute = require("./routes/ProductRoute");
 const {notFoundHandler, serverErrorHandler} = require("./middlewares/ErrorHandler");
@@ -14,6 +15,7 @@ dbconnect();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser());
+app.use(morgan("dev"));
 
 app.use('/api/user', authRoute);
 app.use('/api/product', productRoute);
