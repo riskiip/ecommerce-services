@@ -1,4 +1,4 @@
-const User = require("./../models/UserModel");
+const User = require("./../models/userModel");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 
@@ -14,10 +14,10 @@ const authMiddleware = asyncHandler(async(req, res, next) => {
                 next();
             }
         } catch(err) {
-            throw new Error('ECM-910|Token invalid|Token sudah tidak valid');
+            throw new Error('Token invalid');
         }
     } else {
-        throw new Error('ECM-911|Header is required|Header diperlukan');
+        throw new Error('Header is required');
     }
 });
 
@@ -25,7 +25,7 @@ const isAdmin = asyncHandler(async (req, res, next) => {
     const { adminUser } = req.user;
     const admin = await User.findOne(adminUser);
     if (admin.role !== 'admin') {
-        throw new Error('ECM-912|You are not admin|Anda bukan sebagai admin');
+        throw new Error('You are not admin');
     } else {
         next();
     }

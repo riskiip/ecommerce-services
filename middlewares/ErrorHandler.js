@@ -1,22 +1,21 @@
-const notFoundHandler = (req, res, next) => {
-    const error = new Error(`Not found ${req.originalUrl}`);
-    res.status(404);
-    next(error);
-}
+// not Found
 
-const serverErrorHandler = (err, req, res, next) => {
-    const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-    res.status(statusCode);
-    res.json({
-        error_schema: {
-            error_code: err.message.split('|')[0],
-            error_message: {
-                english: err.message.split('|')[1],
-                indonesia: err.message.split('|')[2],
-            }
-        },
-        output_schema: {}
-    });
-}
+const notFound = (req, res, next) => {
+  const error = new Error(`Not Found : ${req.originalUrl}`);
+  res.status(404);
+  next(error);
+};
 
-module.exports = { notFoundHandler, serverErrorHandler };
+// Error Handler
+
+const errorHandler = (err, req, res, next) => {
+  const statuscode = res.statusCode == 200 ? 500 : res.statusCode;
+  res.status(statuscode);
+  res.json({
+    status: "fail",
+    message: err?.message,
+    stack: err?.stack,
+  });
+};
+
+module.exports = { errorHandler, notFound };
