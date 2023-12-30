@@ -17,12 +17,22 @@ paypal.configure({
 });
 
 const createProduct = asyncHandler(async (req, res) => {
+    const {_id} = req.user;
     try {
+        const user = await User.findById(_id);
         if (req.body.title) {
             req.body.slug = slugify(req.body.title);
         }
+        console.log(user?._id);
         const newProduct = await Product.create(req.body);
-        res.json(newProduct);
+        const updateUser = await Product.findByIdAndUpdate(newProduct._id,
+            {
+                createdBy: user?.id
+            },
+            {
+                new: true
+            });
+        res.json(updateUser);
     } catch (error) {
         throw new Error(error);
     }
@@ -65,6 +75,10 @@ const getaProduct = asyncHandler(async (req, res) => {
         throw new Error(error);
     }
 });
+
+// const getProductByUser = asyncHandler(async (req, res) => {
+//
+// })
 
 const getAllProduct = asyncHandler(async (req, res) => {
     try {
@@ -111,6 +125,7 @@ const getAllProduct = asyncHandler(async (req, res) => {
         throw new Error(error);
     }
 });
+
 const addToWishlist = asyncHandler(async (req, res) => {
     const {_id} = req.user;
     const {prodId} = req.body;
@@ -208,6 +223,7 @@ const uploadImages = asyncHandler(async (req, res) => {
         const uploader = (path) => cloudinaryUploadImg(path, "images");
         const urls = [];
         const files = req.files;
+        console.log(files);
         for (const file of files) {
             const {path} = file;
             const newpath = await uploader(path);
