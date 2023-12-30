@@ -23,12 +23,11 @@ var productSchema = new mongoose.Schema(
             required: true,
         },
         category: {
-            type: String,
-            required: true,
+            type: String
         },
-        brand: {
-            type: String,
-            required: true,
+        ministry_status: {
+            type: Boolean,
+            default: false
         },
         quantity: {
             type: Number,
@@ -39,8 +38,6 @@ var productSchema = new mongoose.Schema(
             default: 0,
         },
         images: [],
-        color: [],
-        tags: String,
         ratings: [
             {
                 star: Number,
@@ -49,7 +46,7 @@ var productSchema = new mongoose.Schema(
             },
         ],
         totalrating: {
-            type: String,
+            type: Number,
             default: 0,
         },
     },
