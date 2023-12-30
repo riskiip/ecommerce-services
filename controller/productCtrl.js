@@ -23,7 +23,6 @@ const createProduct = asyncHandler(async (req, res) => {
         if (req.body.title) {
             req.body.slug = slugify(req.body.title);
         }
-        console.log(user?._id);
         const newProduct = await Product.create(req.body);
         const updateUser = await Product.findByIdAndUpdate(newProduct._id,
             {
@@ -66,7 +65,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 });
 
 const getaProduct = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     validateMongoDbId(id);
     try {
         const findProduct = await Product.findById(id);
@@ -75,6 +74,7 @@ const getaProduct = asyncHandler(async (req, res) => {
         throw new Error(error);
     }
 });
+
 
 // const getProductByUser = asyncHandler(async (req, res) => {
 //
@@ -223,7 +223,6 @@ const uploadImages = asyncHandler(async (req, res) => {
         const uploader = (path) => cloudinaryUploadImg(path, "images");
         const urls = [];
         const files = req.files;
-        console.log(files);
         for (const file of files) {
             const {path} = file;
             const newpath = await uploader(path);
@@ -310,7 +309,7 @@ const successPage = asyncHandler(async (req, res) => {
             if (error) {
                 throw new Error(error)
             } else {
-                res.json('success');
+                res.redirect('http://localhost:4200/jusgola/summary');
             }
         });
     } catch (error) {

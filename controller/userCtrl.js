@@ -53,17 +53,15 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
       },
       { new: true }
     );
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      maxAge: 72 * 60 * 60 * 1000,
-    });
     res.json({
       _id: findUser?._id,
       firstname: findUser?.firstname,
       lastname: findUser?.lastname,
       email: findUser?.email,
       mobile: findUser?.mobile,
+      role: findUser?.role,
       token: generateToken(findUser?._id),
+      refreshToken: refreshToken
     });
   } else {
     throw new Error("Invalid Credentials");
@@ -123,9 +121,7 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
 // logout functionality
 
 const logout = asyncHandler(async (req, res) => {
-  // const cookie = req.cookies;
-  // if (!cookie?.refreshToken) throw new Error("No Refresh Token in Cookies");
-  // const refreshToken = cookie.refreshToken;
+  const refreshToken = req.body.cookieToken;
   const user = await User.findOne({ refreshToken });
   if (!user) {
     res.clearCookie("refreshToken", {
@@ -136,10 +132,6 @@ const logout = asyncHandler(async (req, res) => {
   }
   await User.findOneAndUpdate(refreshToken, {
     refreshToken: "",
-  });
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-    secure: true,
   });
   res.sendStatus(204); // forbidden
 });
@@ -399,11 +391,11 @@ const emptyCart = asyncHandler(async (req, res) => {
 });
 
 const createOrder = asyncHandler(async (req, res) => {
-  const { COD, couponApplied } = req.body;
+  const { transactionMethod } = req.body;
   const { _id } = req.user;
   validateMongoDbId(_id);
   try {
-    if (!COD) throw new Error("Create cash order failed");
+    if (!transactionMethod) throw new Error("Create cash order failed");
     const user = await User.findById(_id);
     let userCart = await Cart.findOne({ orderby: user._id });
     let finalAmout = 0;
@@ -413,9 +405,9 @@ const createOrder = asyncHandler(async (req, res) => {
       products: userCart.products,
       paymentIntent: {
         id: uniqid(),
-        method: "COD",
+        method: transactionMethod,
         amount: finalAmout,
-        status: "Cash on Delivery",
+        status: "Processing",
         created: Date.now(),
         currency: "usd",
       },
