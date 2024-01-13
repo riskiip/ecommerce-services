@@ -8,7 +8,7 @@ const Blog = require("../models/blogModel");
 const cloudinaryUploadImg = require("../utils/cloudinary");
 const paypal = require('paypal-rest-sdk');
 
-const { PAYPAL_MODE, PAYPAL_CLIENT_KEY, PAYPAL_SECRET_KEY } = process.env;
+const {PAYPAL_MODE, PAYPAL_CLIENT_KEY, PAYPAL_SECRET_KEY} = process.env;
 
 paypal.configure({
     'mode': PAYPAL_MODE, //sandbox or live
@@ -38,15 +38,18 @@ const createProduct = asyncHandler(async (req, res) => {
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
-    const id = req.params;
+    const {id} = req.params;
     validateMongoDbId(id);
     try {
-        if (req.body.title) {
-            req.body.slug = slugify(req.body.title);
-        }
-        const updateProduct = await Product.findOneAndUpdate({id}, req.body, {
-            new: true,
-        });
+        const updateProduct = await Product.findByIdAndUpdate(
+            id,
+            {
+                ministry_status: req.body.ministry_status,
+                title: req.body.title,
+                description: req.body.description,
+                price: req.body.price
+            },
+            {new: true})
         res.json(updateProduct);
     } catch (error) {
         throw new Error(error);
@@ -54,10 +57,10 @@ const updateProduct = asyncHandler(async (req, res) => {
 });
 
 const deleteProduct = asyncHandler(async (req, res) => {
-    const id = req.params;
+    const {id} = req.params;
     validateMongoDbId(id);
     try {
-        const deleteProduct = await Product.findOneAndDelete(id);
+        const deleteProduct = await Product.findByIdAndDelete(id);
         res.json(deleteProduct);
     } catch (error) {
         throw new Error(error);
@@ -65,7 +68,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 });
 
 const getaProduct = asyncHandler(async (req, res) => {
-    const { id } = req.params;
+    const {id} = req.params;
     validateMongoDbId(id);
     try {
         const findProduct = await Product.findById(id);
